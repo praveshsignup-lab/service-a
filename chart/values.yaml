@@ -15,7 +15,7 @@ labels:
 
 image:
   repository: quay.io/brancz/prometheus-example-app
-  tag: v0.4.4         # bumped — adds /err counter behaviour change
+  tag: v0.4.0         # bumped — picks up upstream /err counter behaviour
   pullPolicy: IfNotPresent
 
 replicas: 1
