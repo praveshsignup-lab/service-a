@@ -1,0 +1,61 @@
+# Defaults for service-a. Env-specific overrides live in the gitops repo at
+# platform-gitops/services/service-a/<env>/values.yaml.
+#
+# Anything a developer should NEVER care about (image, container args, SLO
+# definition) is here. Anything an operator/SRE might tune per environment
+# (replicas, resources, objective) is intentionally overridable.
+
+# Identity — every workload Pod, Service, ServiceMonitor and
+# PrometheusServiceLevel carries these (platform contract §2).
+labels:
+  app.kubernetes.io/name: service-a
+  app.kubernetes.io/part-of: sidekick
+  team: team-a
+  tier: backend
+
+image:
+  repository: quay.io/brancz/prometheus-example-app
+  tag: v0.5.0         # overridden by env values + CI pipeline
+  pullPolicy: IfNotPresent
+
+replicas: 1
+
+service:
+  port: 80
+  targetPort: http
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 32Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+# Hardened pod defaults; envs shouldn't loosen these.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  seccompProfile:
+    type: RuntimeDefault
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+monitoring:
+  enabled: true
+  # Label kube-prometheus-stack's operator selects on.
+  releaseLabel: kube-prometheus-stack
+  interval: 30s
+  path: /metrics
+
+# SLO. The objective is overridable per env (e.g. relaxed in dev/staging,
+# tight in prod) but the SLI definition is owned by the service team.
+slo:
+  enabled: true
+  service: service-a
+  objective: 99.5
+  description: 99.5% of HTTP requests over 30 days return non-5xx.
+  runbookUrl: https://runbooks.example/team-a/service-a/availability

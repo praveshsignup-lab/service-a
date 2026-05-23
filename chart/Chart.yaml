@@ -1,0 +1,10 @@
+apiVersion: v2
+name: service-a
+description: HTTP demo service owned by team-a
+type: application
+# version  -> chart version, bumped on chart template changes
+# appVersion -> image tag, bumped by CI on every code merge
+version: 0.1.0
+appVersion: "v0.5.0"
+maintainers:
+  - name: team-a

@@ -1,0 +1,40 @@
+{{- if .Values.slo.enabled }}
+apiVersion: sloth.slok.dev/v1
+kind: PrometheusServiceLevel
+metadata:
+  name: {{ include "service.name" . }}
+  labels:
+    {{- include "service.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  service: {{ .Values.slo.service | quote }}
+  labels:
+    team: {{ index .Values.labels "team" | quote }}
+    tier: {{ index .Values.labels "tier" | quote }}
+  slos:
+    - name: availability
+      objective: {{ .Values.slo.objective }}
+      description: {{ .Values.slo.description | quote }}
+      sli:
+        events:
+          errorQuery: |
+            sum(rate(http_requests_total{job="{{ .Values.slo.service }}",code=~"5.."}[{{`{{.window}}`}}]))
+          totalQuery: |
+            sum(rate(http_requests_total{job="{{ .Values.slo.service }}"}[{{`{{.window}}`}}]))
+      alerting:
+        name: {{ .Values.slo.service | replace "-" " " | title | replace " " "" }}Availability
+        labels:
+          category: availability
+          team: {{ index .Values.labels "team" | quote }}
+        annotations:
+          summary: "{{ .Values.slo.service }} availability SLO burn"
+          runbook_url: {{ .Values.slo.runbookUrl | quote }}
+        pageAlert:
+          labels:
+            severity: page
+        ticketAlert:
+          labels:
+            severity: ticket
+{{- end }}
