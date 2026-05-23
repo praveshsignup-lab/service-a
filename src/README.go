@@ -1,4 +1,5 @@
 package main
+package main
 
 // Placeholder — this repo intentionally vendors the `prometheus-example-app`
 // upstream image (see Dockerfile). When the team has real code, drop it here
